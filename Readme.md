@@ -8,5 +8,5 @@ click on Start Listening button from UI and place the curosor on any field you w
 
 Open Developer Command Prompt from Powershell dropdown and run below command
 
-`csc SpeechToTextHelper.cs -r:"C:\Program Files\Reference Assemblies\Microsoft\Framework\v3.0\System.Speech.dll`
+`csc SpeechToTextHelper.cs -r:"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8.1\System.Speech.dll`
 
