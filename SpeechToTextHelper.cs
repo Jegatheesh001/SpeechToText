@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Speech.Recognition;
 
 namespace SpeechHelper
@@ -9,33 +10,39 @@ namespace SpeechHelper
         {
             try
             {
-                // Create an in-process speech recognizer.
-                // Using a 'using' statement ensures resources are released.
-                using (SpeechRecognitionEngine recognizer = new SpeechRecognitionEngine())
+                // Create an in-process speech recognizer with a specific culture (en-IN).
+                // You can change the culture string as needed.
+                using (SpeechRecognitionEngine recognizer = new SpeechRecognitionEngine(new CultureInfo("en-IN")))
                 {
                     // Create and load a dictation grammar.
-                    // This grammar allows the recognizer to recognize any spoken words.
                     recognizer.LoadGrammar(new DictationGrammar());
 
-                    // Add a handler for the SpeechRecognized event.
+                    // Subscribe to events.
                     recognizer.SpeechRecognized += new EventHandler<SpeechRecognizedEventArgs>(recognizer_SpeechRecognized);
+                    recognizer.SpeechRecognitionRejected += new EventHandler<SpeechRecognitionRejectedEventArgs>(recognizer_SpeechRecognitionRejected);
 
                     // Configure the recognizer to use the default audio device.
-                    recognizer.SetInputToDefaultAudioDevice();
+                    try
+                    {
+                        recognizer.SetInputToDefaultAudioDevice();
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        Console.WriteLine("No audio input device found: " + ex.Message);
+                        return;
+                    }
 
                     // Start asynchronous, continuous recognition.
-                    // 'RecognizeMode.Multiple' means it will keep listening after recognizing something.
                     recognizer.RecognizeAsync(RecognizeMode.Multiple);
 
                     // Keep the console application running.
-                    // The Java application will terminate this process when it's done.
                     Console.WriteLine("Speech helper started. Listening for speech...");
                     Console.ReadLine();
                 }
             }
             catch (Exception ex)
             {
-                // Write any errors to the console so they can potentially be read by the Java app's error stream.
+                // Write any errors to the console.
                 Console.WriteLine("An error occurred in the speech helper: " + ex.Message);
             }
         }
@@ -45,13 +52,16 @@ namespace SpeechHelper
         {
             if (e.Result != null && !string.IsNullOrEmpty(e.Result.Text))
             {
-                // Write the recognized text to the standard output.
-                // This is how we send the text to our Java application.
                 Console.WriteLine(e.Result.Text);
-
-                // Immediately flush the output stream to ensure the Java app receives it in real-time.
                 Console.Out.Flush();
             }
+        }
+
+        // Handle the SpeechRecognitionRejected event.
+        private static void recognizer_SpeechRecognitionRejected(object sender, SpeechRecognitionRejectedEventArgs e)
+        {
+            Console.WriteLine("Speech could not be recognized.");
+            Console.Out.Flush();
         }
     }
 }
